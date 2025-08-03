@@ -11,10 +11,13 @@ const protect = async (req, res, next) => {
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
+    
   ) {
+    // console.log("p1");
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // console.log("p");
 
       // Pick model by role from token
       let user;

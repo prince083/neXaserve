@@ -1,11 +1,11 @@
 const express = require('express');
-const { createService, getAllServices } = require('../controllers/serviceController');
+const { createService, getAllServices,deleteService } = require('../controllers/serviceController');
 const { protect, authorizeRoles } = require('../middleWares/authMiddleware');
 
 const router = express.Router();
 
-router.route('/')
-  .post(protect, authorizeRoles('provider'), createService)
-  .get(getAllServices); // anyone can view
+router.post('/createService',protect, authorizeRoles('provider'), createService); //for creating services
+router.delete('/deleteService/:id',protect,authorizeRoles('provider'),deleteService); //for deleteing services
+router.get('/all',getAllServices); // anyone can view
 
 module.exports = router;

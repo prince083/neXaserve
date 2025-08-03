@@ -18,7 +18,9 @@ const serviceSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  description: String,
+  description: {
+    type:String,
+  },
   isApproved: {
     type: Boolean,
     default: false, // Admin will approve

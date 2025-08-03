@@ -1,8 +1,9 @@
-const Booking = ('../models/booking.js');
+const Booking = require('../models/booking.js');
 
 exports.createBooking = async (req, res) => {
   try {
     const { serviceId, scheduledDate } = req.body;
+    // console.log("p");
 
     const booking = await Booking.create({
       user: req.user.id,

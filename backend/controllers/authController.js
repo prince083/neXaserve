@@ -2,6 +2,7 @@ const User = require('../models/user');
 const Provider = require('../models/provider');
 const Admin = require('../models/admin');
 const generateToken = require('../utils/generateToken');
+const bcrypt=require('bcrypt');
 
 // Helper to select model by role
 const getModelByRole = (role) => {
@@ -11,11 +12,7 @@ const getModelByRole = (role) => {
   throw new Error('Invalid role');
 };
 
-// SIGNUP
-exports.register = async (req, res) => {
-  const { name, email, password, role } = req.body;
-
-  const checkEmailExists = async (email) => {
+const checkEmailExists = async (email) => {
     const user = await User.findOne({ email });
     const provider = await Provider.findOne({ email });
     const admin = await Admin.findOne({ email });
@@ -23,13 +20,24 @@ exports.register = async (req, res) => {
     return user || provider || admin;
 };
 
+// SIGNUP
+exports.register = async (req, res) => {
   try {
+    const { name, email, password, role } = req.body;
+  
+    if (!name || !email || !password || !role){
+      return res.status(400).json({message:"Please Enter All Credentials"})
+    }
     const Model = getModelByRole(role);
     if (await checkEmailExists(req.body.email)) {
-        return res.status(400).json({ success: false, message: "Email already in use for another role." });
+        return res.status(400).json({ success: false, message: "Email already in used" });
     }
 
-    let newUserData = { name, email, password, role };
+    const salt=await bcrypt.genSalt();
+    const hashedPassword=await bcrypt.hash(password,salt);
+
+
+    let newUserData = { name, email, password:hashedPassword, role };
 
     // 🔒 Add only if role is provider
     if (role === 'provider') {
@@ -55,14 +63,19 @@ exports.register = async (req, res) => {
 
 // LOGIN
 exports.login = async (req, res) => {
-  const { email, password, role } = req.body;
-
+  
   try {
+    const { email, password, role } = req.body;
+
+    if (!email || !password || !role){
+      return res.status(400).json({message:"please Enter All Credentials"})
+    }
+
     const Model = getModelByRole(role);
     const user = await Model.findOne({ email });
-    if (!user) return res.status(400).json({ message: `${role} not found` });
+    if (!user) return res.status(400).json({ message: `User not found` });
 
-    const isMatch = await user.matchPassword(password);
+    const isMatch = await bcrypt.compare(password,user.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
     res.json({
